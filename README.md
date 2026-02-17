@@ -6,7 +6,7 @@ This project implements a secure, two-chain asset bridge with a Node.js relayer 
 - **Cross-Chain Governance**: A voting system on Chain B that can trigger emergency actions (pausing the bridge) on Chain A.
 - **Containerized Ecosystem**: Fully orchestrated with Docker Compose for easy deployment.
 
-Architecture
+## Architecture
 
 The Two-Chain Asset Bridge with Cross-Chain Governance consists of three main components:
 
