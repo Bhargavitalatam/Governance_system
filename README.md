@@ -6,36 +6,31 @@ This project implements a secure, two-chain asset bridge with a Node.js relayer 
 - **Cross-Chain Governance**: A voting system on Chain B that can trigger emergency actions (pausing the bridge) on Chain A.
 - **Containerized Ecosystem**: Fully orchestrated with Docker Compose for easy deployment.
 
-## Architecture
+Architecture
 
-The diagram below illustrates the flow of assets and governance between Chain A (Settlement), the Node.js Relayer, and Chain B (Execution). Events triggered on one chain are picked up by the relayer and acted upon on the other chain, while governance proposals on Chain B can pause the bridge on Chain A in emergencies.
+The Two-Chain Asset Bridge with Cross-Chain Governance consists of three main components:
 
-```mermaid
-graph LR
-    subgraph "Chain A (Settlement)"
-        VaultToken[VaultToken ERC20]
-        BridgeLock[BridgeLock Contract]
-        GovEmergency[GovEmergency Contract]
-    end
+1. Chain A (Settlement)
 
-    subgraph "Relayer (Node.js)"
-        Listener[Event Listener]
-        Store[(Persistence JSON)]
-    end
+VaultToken (ERC20): The original token that users lock for bridging.
 
-    subgraph "Chain B (Execution)"
-        WrappedToken[WrappedVaultToken]
-        BridgeMint[BridgeMint Contract]
-        GovVoting[GovVoting Contract]
-    end
+BridgeLock Contract: Handles locking tokens on Chain A and emits events for the relayer.
 
-    BridgeLock -- "Locked Event" --> Listener
-    Listener -- "mintWrapped()" --> BridgeMint
-    BridgeMint -- "Burned Event" --> Listener
-    Listener -- "unlock()" --> BridgeLock
-    GovVoting -- "ProposalPassed" --> Listener
-    Listener -- "pauseBridge()" --> GovEmergency
+GovEmergency Contract: Enables emergency actions such as pausing the bridge, triggered by governance proposals on Chain B.
 
+2. Relayer (Node.js)
+
+Event Listener: Watches for events on both chains and triggers corresponding actions (minting, unlocking, pausing).
+
+Persistence Store (JSON/Database): Keeps track of processed events and nonces to prevent replay attacks and ensure reliability.
+
+3. Chain B (Execution)
+
+WrappedVaultToken: The bridged version of VaultToken on Chain B.
+
+BridgeMint Contract: Mints WrappedVaultToken when tokens are locked on Chain A and burns them to release tokens back on Chain A.
+
+GovVoting Contract: Handles cross-chain governance proposals. Can trigger emergency actions on Chain A via the relayer.
 
 ## Setup & Running
 
