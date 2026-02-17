@@ -8,6 +8,8 @@ This project implements a secure, two-chain asset bridge with a Node.js relayer 
 
 ## Architecture
 
+The diagram below illustrates the flow of assets and governance between Chain A (Settlement), the Node.js Relayer, and Chain B (Execution). Events triggered on one chain are picked up by the relayer and acted upon on the other chain, while governance proposals on Chain B can pause the bridge on Chain A in emergencies.
+
 ```mermaid
 graph LR
     subgraph "Chain A (Settlement)"
@@ -33,7 +35,7 @@ graph LR
     Listener -- "unlock()" --> BridgeLock
     GovVoting -- "ProposalPassed" --> Listener
     Listener -- "pauseBridge()" --> GovEmergency
-```
+
 
 ## Setup & Running
 
