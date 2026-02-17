@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  chain-a:
+    image: node:20-alpine
+    working_dir: /usr/src/app
+    volumes:
+      - .:/usr/src/app
+    ports:
+      - "8545:8545"
+    command: sh -c "apk add --no-cache curl && npx hardhat node --port 8545 --hostname 0.0.0.0 --chain-id 1111"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8545"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  chain-b:
+    image: node:20-alpine
+    working_dir: /usr/src/app
+    volumes:
+      - .:/usr/src/app
+    ports:
+      - "9545:9545"
+    command: sh -c "apk add --no-cache curl && npx hardhat node --port 9545 --hostname 0.0.0.0 --chain-id 2222"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9545"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  relayer:
+    build: 
+      context: .
+      dockerfile: relayer/Dockerfile
+    restart: on-failure
+    environment:
+      - CHAIN_A_RPC_URL=http://chain-a:8545
+      - CHAIN_B_RPC_URL=http://chain-b:9545
+      - DEPLOYER_PRIVATE_KEY=${DEPLOYER_PRIVATE_KEY}
+      - CONFIRMATION_DEPTH=${CONFIRMATION_DEPTH}
+      - DB_PATH=/usr/src/app/data/processed_nonces.json
+      - BRIDGE_LOCK_ADDR=${BRIDGE_LOCK_ADDR}
+      - BRIDGE_MINT_ADDR=${BRIDGE_MINT_ADDR}
+      - GOV_VOTING_ADDR=${GOV_VOTING_ADDR}
+      - GOV_EMERGENCY_ADDR=${GOV_EMERGENCY_ADDR}
+    volumes:
+      - ./relayer_data:/usr/src/app/data
+    depends_on:
+      chain-a:
+        condition: service_healthy
+      chain-b:
+        condition: service_healthy
